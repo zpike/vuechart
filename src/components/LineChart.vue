@@ -13,20 +13,23 @@
             </van-col>
         </van-row>
 
-        <Chart1/>
+        <Chart/>
 
         <Chart2/>
+
+        <Chart3/>
 
     </main>
 </template>
 
 <script>
     import moment from 'moment'
-    import Chart1 from "@/components/Chart1";
+    import Chart from "@/components/Chart";
     import Chart2 from "@/components/Chart2";
+    import Chart3 from "@/components/Chart3";
     export default {
         name: "LineChart",
-        components: {Chart1, Chart2},
+        components: {Chart, Chart2, Chart3},
         data() {
             return {
                 radio: '1',
@@ -62,8 +65,7 @@
 
 .echarts {
     width: 100%;
-    height: 100%;
+    height: 300px;
     margin-top: 20px;
-    margin-left: 20px;
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
     <div class="page-line-chart">
-        <h4>SO2浓度曲线图</h4>
+        <h4>尘浓度曲线图</h4>
         <ve-line
                 :data="chartData"
                 :grid="grid"
@@ -123,7 +123,7 @@
                 // }],
                 digit: 3,
                 labelMap: {
-                    PV: 'SO2浓度',
+                    PV: '尘浓度',
                 },
             }
             return {

@@ -1,6 +1,8 @@
 <template>
     <main>
-        <v-chart :options="Options" autoresize theme="light"/>
+        <h4>NOx浓度曲线图</h4>
+        <v-chart :options="Options" autoresize/>
+
     </main>
 </template>
 
@@ -8,9 +10,7 @@
     import 'echarts/lib/chart/line'
     import "echarts/lib/component/tooltip"
     import "echarts/lib/component/legend"
-    import "echarts/lib/component/markPoint"
     import "echarts/lib/component/markLine"
-    import 'echarts/lib/component/title'
     import 'echarts/lib/component/markArea'
 
     export default {
@@ -19,10 +19,6 @@
         data () {
             return {
                 Options: {
-                    title: {
-                        text: 'SO2浓度实时曲线图',
-                        subtext: 'mg/Nm³'
-                    },
                     tooltip: {
                         trigger: 'axis',
                         axisPointer: {
@@ -33,9 +29,7 @@
                         }
                     },
                     legend: {
-                        data: ['SO2浓度'],
-                        y: 'bottom',
-                        x: 'left'
+                        data: ['SO2浓度']
                     },
                     xAxis: [
                         {
@@ -86,47 +80,14 @@
                                         color:"grey"
                                     },
                                     yAxis: '30'
-                                },
-                                    [{
-                                        symbol: 'none',
-                                        lineStyle:{
-                                            type:"grid",
-                                            color:"red"
-                                        },
-                                        x: '90%',
-                                        coord: [9, 28]
-                                    }, {
-                                        symbol: 'none',
-                                        label: {
-                                            position: 'start',
-                                            formatter: '达标控制线',
-                                            color: 'red'
-                                        },
-                                        coord: [9, 28]
-                                    }],
-                                    [{
-                                        symbol: 'none',
-                                        lineStyle:{
-                                            type:"grid",
-                                            color:"orange"
-                                        },
-                                        x: '90%',
-                                        coord: [9, 26]
-                                    }, {
-                                        symbol: 'none',
-                                        label: {
-                                            position: 'start',
-                                            formatter: '内部控制线',
-                                            color: 'orange'
-                                        },
-                                        coord: [9, 26]
-                                    }]
-                                ]
+                                }]
                             }
                         }
                     ]
                 }
             }
+        },
+        methods: {
         }
     }
 </script>
