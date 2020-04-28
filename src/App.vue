@@ -1,17 +1,13 @@
 <template>
   <div id="app">
-    <LineChart />
+    <router-view/>
   </div>
 </template>
 
 <script>
-import LineChart from "@/components/LineChart";
 
 export default {
   name: 'App',
-  components: {
-    LineChart
-  }
 }
 </script>
 
