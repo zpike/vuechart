@@ -52,7 +52,7 @@
                     axios.defaults.headers.common['Authorization'] = token
                     axios.get(devURL).then(response => {
                         this.devLists = response.data.data
-                        console.log(this.devLists)
+                        // console.log(this.devLists)
                     })
                         .catch(error => {
                             console.log(error)
