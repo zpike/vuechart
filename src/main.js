@@ -7,13 +7,15 @@ import { Col, Row } from 'vant';
 import { Icon } from 'vant';
 import { Notify } from 'vant'; 
 import { Tab, Tabs } from 'vant';
+import { Divider } from 'vant';
+import { Toast } from 'vant';
 
 import VeLine from 'v-charts/lib/line.common';
 import VeHistogram from 'v-charts/lib/histogram.common.js';
 import VeGauge from 'v-charts/lib/gauge.common.js';
 
 import { VeLineChart } from 've-charts'  // 折线图
-import { VeBarChart } from 've-charts'  // 折线图
+import { VeBarChart } from 've-charts'  //
 import markArea from 've-charts'
 import markLine from 've-charts'
 
@@ -30,6 +32,8 @@ Vue.use(Icon);
 Vue.use(Notify);
 Vue.use(Tab);
 Vue.use(Tabs);
+Vue.use(Divider);
+Vue.use(Toast);
 
 [VeLine, VeHistogram, VeGauge].forEach(comp => {
   Vue.component(comp.name, comp);
@@ -38,6 +42,8 @@ Vue.use(Tabs);
 // Vue.use(VueMqtt, 'ws://iot.eclipse.org/ws', options);
 
 Vue.config.productionTip = false
+
+
 
 new Vue({
   router,
