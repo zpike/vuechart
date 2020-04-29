@@ -9,7 +9,9 @@
                     :data="chartData"
                     :legend-visible="false"
                     :settings="chartSettings"
-                    :loading="loading"/>
+                    :loading="loading"
+                    v-bind="options"
+            />
         </van-tab>
 
         <van-tab title="SO2" name="SO2">
@@ -108,8 +110,11 @@
                             this.info = response.data
                             // console.log(this.info)
                             let linedata = []
+                            let bardata = []
                             if (this.info.data !== null) {
                                 linedata = this.info.data.line
+                                bardata = this.info.data.bar
+                                // this.barstart = bardata.x_pos
                             }
                             // console.log(linedata)
                             if (linedata !== undefined) {
@@ -200,8 +205,24 @@
             this.mqttConnect()
         },
         created() {
+            this.options = {
+                series: [{
+                    markArea: {
+                        data: [
+                            [{
+                                name: '平均值',
+                                xAxis: '09:50'
+                            }, {
+                                xAxis: '10:00',
+                                yAxis: '30'
+                            }]
+                        ]
+                    }
+                }]
+            }
             this.chartSettings = {
-                smooth: true
+                smooth: true,
+                showSymbol: false,
             }
         },
         beforeDestroy() {

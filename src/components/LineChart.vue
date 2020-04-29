@@ -13,7 +13,6 @@
             </van-col>
         </van-row>
 
-        <!--         <VCharts/>-->
         <DynamicChart/>
 
     </main>
@@ -23,7 +22,6 @@
     import axios from 'axios'
     import {devURL, token} from '@/api'
     import moment from 'moment'
-    // import VCharts from "@/charts/VCharts";
     import DynamicChart from "@/charts/DynamicChart";
 
     export default {
