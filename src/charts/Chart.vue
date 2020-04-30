@@ -124,7 +124,6 @@
                             if (this.info.data !== null) {
                                 linedata = this.info.data.line
                             }
-                            // console.log(linedata)
                             if (linedata !== undefined) {
                                 this.chartData.push({name: linedata.tip, value: [linedata.tip, linedata.value]})
                                 this.RedrawChart() // 获取历史数据之后绘制图表
@@ -222,12 +221,12 @@
                     }
                 },
                 xAxis: {
+                    name: '分钟',
                     type: 'time',
                     splitLine: {
                         show: false
                     },
-                    nameLocation: 'end',
-                    minInterval: 5,
+                    maxInterval: 300 * 1000, // 5分钟间隔显示x轴
                     axisLabel: {
                         formatter: function (value) {
                             return moment(value).format('HH:mm');
