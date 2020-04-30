@@ -7,8 +7,6 @@
             </h4>
             <ve-line-chart
                     :title="title"
-                    :data="chartData"
-                    :ec.sync="chart"
                     :legend-visible="false"
                     :settings="chartSettings"
                     :loading="loading"
@@ -22,10 +20,11 @@
                 SO2浓度曲线图
             </h4>
             <ve-line-chart
-                    :data="chartData"
+                    :title="title"
                     :legend-visible="false"
                     :settings="chartSettings"
-                    :loading="loading"/>
+                    :loading="loading"
+                    v-bind="options"/>
         </van-tab>
 
         <van-tab title="DUST" name="DUST">
@@ -34,10 +33,11 @@
                 尘浓度曲线图
             </h4>
             <ve-line-chart
-                    :data="chartData"
+                    :title="title"
                     :legend-visible="false"
                     :settings="chartSettings"
-                    :loading="loading"/>
+                    :loading="loading"
+                    v-bind="options"/>
         </van-tab>
     </van-tabs>
 </template>
@@ -75,6 +75,7 @@
                 activeName: 'NOX',
                 deviceID: null,
                 customerId: null,
+                token: '',
                 MSG_TOPIC: '',  //订阅主题
                 towerNo: 0,  //塔1-3
                 loading: true,
@@ -98,7 +99,7 @@
                             this.MSG_TOPIC = 'overproof/' + this.customerId + '/' + this.deviceID
                             console.log('mqtt-Topic: ' + this.MSG_TOPIC)
                         }
-                        this.loadingData(token)  // 加载当前小时内的历史数据
+                        this.loadingData()  // 加载当前小时内的历史数据
                         this.mqttConnect() // mqtt连接 加载图表
                     })
                         .catch(error => {
@@ -106,10 +107,10 @@
                         })
                 }, 1000)
             },
-            loadingData(token) {
+            loadingData() {
                 this.loading = true
                 setTimeout(() => {
-                    axios.defaults.headers.common['Authorization'] = token
+                    axios.defaults.headers.common['Authorization'] = this.token
                     axios
                         .get(dataURL, {
                             params: {
@@ -124,8 +125,12 @@
                             if (this.info.data !== null) {
                                 linedata = this.info.data.line
                             }
+                            let charArray = []
                             if (linedata !== undefined) {
-                                this.chartData.push({name: linedata.tip, value: [linedata.tip, linedata.value]})
+                                linedata.forEach(function (v) {
+                                    charArray.push({name: v.tip, value:[v.tip, v.value]})
+                                })
+                                this.chartData = charArray
                                 this.RedrawChart() // 获取历史数据之后绘制图表
                             }
                         })
@@ -156,7 +161,7 @@
                     var pointName = JSON.parse(this.msg).pointName
                     var lineData = JSON.parse(this.msg).line
                     var barData = JSON.parse(this.msg).bar
-                    if (barData !== null) {
+                    if (barData !== undefined) {
                         this.barStart = moment(barData.tip).subtract(30, 'second')
                         this.barEnd = barData.tip
                         this.barValue = barData.value
@@ -189,13 +194,67 @@
                 client.unsubscribe(this.MSG_TOPIC, opt)
             },
             RedrawChart() {
-                this.chart.setOption(this.options, true)
+                this.options = {
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'cross'
+                        }
+                    },
+                    xAxis: {
+                        name: '分钟',
+                        type: 'time',
+                        splitLine: {
+                            show: false
+                        },
+                        maxInterval: 300 * 1000, // 5分钟间隔显示x轴
+                        axisLabel: {
+                            formatter: function (value) {
+                                return moment(value).format('HH:mm');
+                            }
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        boundaryGap: [0, '100%'],
+                        splitLine: {
+                            show: true
+                        },
+                    },
+                    series: [{
+                        name: '浓度',
+                        type: 'line',
+                        showSymbol: false,
+                        hoverAnimation: false,
+                        data: this.chartData,
+                        markArea: {
+                            data: [
+                                [{
+                                    name: '平均值',
+                                    xAxis: this.barStart
+                                }, {
+                                    xAxis: this.barEnd,
+                                    yAxis: this.barValue
+                                }]
+                            ]
+                        }
+                    },
+                        {
+                            name: '.anchor',
+                            type: 'line',
+                            showSymbol: false,
+                            data: this.anchor,
+                            itemStyle: {normal: {opacity: 0}},
+                            lineStyle: {normal: {opacity: 0}}
+                        },
+                    ]
+                }
             }
         },
         created() {
             // let token = 'Bearer ' + this.$utils.getUrlKey("token")
-            let token = x_token
-            this.getDevId(token)
+            this.token = x_token
+            this.getDevId(this.token)
             var nowHour = moment(new Date()).format('YYYY/MM/DD HH:00:00')
             var nextHour = moment(new Date()).add(1, 'hour').format('YYYY/MM/DD HH:00:00')
             this.anchor.push({name: nowHour, value: [nowHour, 0]})
@@ -209,64 +268,7 @@
                 showSymbol: false
             }
             this.options = {
-                tooltip: {
-                    trigger: 'axis',
-                    // formatter: function (params) {
-                    //     params = params[0];
-                    //     var date = new Date(params.name);
-                    //     return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + ' : ' + params.value[1];
-                    // },
-                    axisPointer: {
-                        animation: false
-                    }
-                },
-                xAxis: {
-                    name: '分钟',
-                    type: 'time',
-                    splitLine: {
-                        show: false
-                    },
-                    maxInterval: 300 * 1000, // 5分钟间隔显示x轴
-                    axisLabel: {
-                        formatter: function (value) {
-                            return moment(value).format('HH:mm');
-                        }
-                    }
-                },
-                yAxis: {
-                    type: 'value',
-                    boundaryGap: [0, '100%'],
-                    splitLine: {
-                        show: true
-                    },
-                },
-                series: [{
-                    name: this.pointName,
-                    type: 'line',
-                    showSymbol: false,
-                    hoverAnimation: false,
-                    data: this.chartData,
-                    markArea: {
-                        data: [
-                            [{
-                                name: '平均值',
-                                xAxis: this.barStart
-                            }, {
-                                xAxis: this.barEnd,
-                                yAxis: this.barValue
-                            }]
-                        ]
-                    }
-                },
-                    {
-                        name: '.anchor',
-                        type: 'line',
-                        showSymbol: false,
-                        data: this.anchor,
-                        itemStyle: {normal: {opacity: 0}},
-                        lineStyle: {normal: {opacity: 0}}
-                    },
-                ]
+
             }
         },
         beforeDestroy() {
