@@ -1,6 +1,6 @@
 <template>
     <van-tabs v-model="activeName" @click="loadingData" color="#5c89ff">
-        <van-tab title="NOX" name="NOX">
+        <van-tab title="NOx" name="NOX">
             <h4>
                 <van-icon name="bar-chart-o" color="#569cfc"/>
                 NOx浓度曲线图
@@ -27,7 +27,7 @@
                     v-bind="options"/>
         </van-tab>
 
-        <van-tab title="DUST" name="DUST">
+        <van-tab title="Dust" name="DUST">
             <h4>
                 <van-icon name="bar-chart-o" color="#569cfc"/>
                 尘浓度曲线图
@@ -83,9 +83,10 @@
                 chart: null,
                 chartData: [],  // 图表数据
                 anchor: [], // 时间锚
+                color: '',
                 barStart: '',
                 barEnd: '',
-                barValue: 0
+                barValue: 0,
             }
         },
         methods: {
@@ -128,9 +129,20 @@
                             let charArray = []
                             if (linedata !== undefined) {
                                 linedata.forEach(function (v) {
-                                    charArray.push({name: v.tip, value:[v.tip, v.value]})
+                                    charArray.push({name: v.tip, value: [v.tip, v.value]})
                                 })
                                 this.chartData = charArray
+                                switch (this.activeName) {
+                                    case "NOX":
+                                        this.color = '#5ECB4F'
+                                        break;
+                                    case 'SO2':
+                                        this.color = '#FEB843'
+                                        break;
+                                    case 'DUST':
+                                        this.color = '#5C89FF'
+                                        break;
+                                }
                                 this.RedrawChart() // 获取历史数据之后绘制图表
                             }
                         })
@@ -169,12 +181,15 @@
                     switch (pointName) {
                         case 'SO2':
                             this.chartData.push({name: lineData.tip, value: [lineData.tip, lineData.value]})
+                            this.color = '#FEB843'
                             break;
                         case 'NOX':
                             this.chartData.push({name: lineData.tip, value: [lineData.tip, lineData.value]})
+                            this.color = '#5ECB4F'
                             break;
                         case 'DUST':
                             this.chartData.push({name: lineData.tip, value: [lineData.tip, lineData.value]})
+                            this.color = '#5C89FF'
                             break;
                         default:
                             break;
@@ -227,6 +242,7 @@
                         showSymbol: false,
                         hoverAnimation: false,
                         data: this.chartData,
+                        color: this.color,
                         markArea: {
                             data: [
                                 [{
@@ -267,9 +283,7 @@
                 smooth: true,
                 showSymbol: false
             }
-            this.options = {
-
-            }
+            this.options = {}
         },
         beforeDestroy() {
             this.mqttDisConnet()
