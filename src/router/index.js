@@ -3,7 +3,6 @@ import Router from 'vue-router'
 const routerOptions = [
     { path: '/', component: 'LineChart' },
     { path: '/line', component: 'LineChart' },
-    { path: '/dynamic', component: 'DynamicChart' },
     { path: '/guage', component: 'Guage' },
     { path: '*', component: 'NotFound' }
 ]

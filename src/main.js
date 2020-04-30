@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
+import utils from './utils/utils'
 
 import { RadioGroup, Radio } from 'vant';
 import { Col, Row } from 'vant';
@@ -39,11 +40,8 @@ Vue.use(Toast);
   Vue.component(comp.name, comp);
 });
 
-// Vue.use(VueMqtt, 'ws://iot.eclipse.org/ws', options);
-
 Vue.config.productionTip = false
-
-
+Vue.prototype.$utils = utils
 
 new Vue({
   router,

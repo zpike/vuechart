@@ -191,7 +191,7 @@
                         case 'SO2':
                             data1.push({ 'PV': lineData.value, 'time': lineData.tip })
                             break;
-                        case 'NOx':
+                        case 'NOX':
                             data2.push({'time': lineData.tip , 'PV': lineData.value })
                             break;
                         case 'dust':

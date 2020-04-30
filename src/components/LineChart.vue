@@ -7,26 +7,29 @@
         <van-row>
             <van-col span="4">塔号</van-col>
             <van-col span="20">
+<!--                <van-radio-group v-model="radio" direction="horizontal">-->
+<!--                    <van-radio v-for="(devList, index) in devLists" :key="devList.id" name="index">{{ devList.name }} + {{index}}</van-radio>-->
+<!--                </van-radio-group>-->
                 <van-radio-group v-model="radio" direction="horizontal">
-                    <van-radio v-for="devList in devLists" :key="devList.id" name="1" >{{ devList.name }}</van-radio>
+                    <van-radio name="1">塔 1</van-radio>
                 </van-radio-group>
             </van-col>
         </van-row>
 
-        <DynamicChart/>
+        <Chart/>
 
     </main>
 </template>
 
 <script>
     import axios from 'axios'
-    import {devURL, token} from '@/api'
+    import {devURL, x_token} from '@/api'
     import moment from 'moment'
-    import DynamicChart from "@/charts/DynamicChart";
+    import Chart from "@/charts/Chart";
 
     export default {
         name: "LineChart",
-        components: {DynamicChart},
+        components: {Chart},
         data() {
             return {
                 radio: '1',
@@ -34,23 +37,25 @@
                 devLists: {},
             }
         },
-        mounted() {
+        created() {
+            // let token = 'Bearer ' + this.$utils.getUrlKey("token")
+            let token = x_token
             let vm = this;
             setInterval(function () {
                 vm.date = vm.getCurrentTime();
             }, 1000)
-            this.getDevList()
+            this.getDevList(token)
         },
         methods: {
             getCurrentTime() {
                 return moment(new Date()).format('HH:mm:ss')
             },
-            getDevList() {
+            // 获取设备ID 塔1-3
+            getDevList(token) {
                 setTimeout(() => {
                     axios.defaults.headers.common['Authorization'] = token
                     axios.get(devURL).then(response => {
                         this.devLists = response.data.data
-                        // console.log(this.devLists)
                     })
                         .catch(error => {
                             console.log(error)
@@ -72,7 +77,7 @@
     .van-radio-group {
         background: @white;
         margin-left: 20px;
-        margin-bottom: 30px;
+        margin-bottom: 20px;
     }
 
     .echarts {
