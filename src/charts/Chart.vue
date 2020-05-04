@@ -76,9 +76,9 @@
                 deviceID: null,
                 customerId: null,
                 token: '',
-                MSG_TOPIC: '',  //订阅主题
+                MSG_TOPIC: 'overproof2/10000000/4',  //订阅主题
                 towerNo: 0,  //塔1-3
-                loading: true,
+                loading: false,
                 info: {},
                 chart: null,
                 chartData: [],  // 图表数据
@@ -178,18 +178,24 @@
                         this.barEnd = barData.tip
                         this.barValue = barData.value
                     }
-                    switch (pointName) {
+                    switch (this.activeName) {
                         case 'SO2':
-                            this.chartData.push({name: lineData.tip, value: [lineData.tip, lineData.value]})
-                            this.color = '#FEB843'
+                            if (pointName === 'SO2') {
+                                this.chartData.push({name: lineData.tip, value: [lineData.tip, lineData.value]})
+                                this.color = '#FEB843'
+                            }
                             break;
                         case 'NOX':
-                            this.chartData.push({name: lineData.tip, value: [lineData.tip, lineData.value]})
-                            this.color = '#5ECB4F'
+                            if (pointName === 'NOX') {
+                                this.chartData.push({name: lineData.tip, value: [lineData.tip, lineData.value]})
+                                this.color = '#5ECB4F'
+                            }
                             break;
                         case 'DUST':
-                            this.chartData.push({name: lineData.tip, value: [lineData.tip, lineData.value]})
-                            this.color = '#5C89FF'
+                            if (pointName === 'DUST') {
+                                this.chartData.push({name: lineData.tip, value: [lineData.tip, lineData.value]})
+                                this.color = '#5C89FF'
+                            }
                             break;
                         default:
                             break;
@@ -233,9 +239,13 @@
                         type: 'value',
                         boundaryGap: [0, '100%'],
                         splitLine: {
-                            show: true
+                            show: false
                         },
                     },
+                    dataZoom: [{
+                        type: 'inside',
+                        throttle: 50
+                    }],
                     series: [{
                         name: '浓度',
                         type: 'line',
