@@ -231,7 +231,7 @@
                         maxInterval: 300 * 1000, // 5分钟间隔显示x轴
                         axisLabel: {
                             formatter: function (value) {
-                                return moment(value).format('HH:mm');
+                                return moment(value).format('mm:ss');
                             }
                         }
                     },
@@ -263,6 +263,23 @@
                                     yAxis: this.barValue
                                 }]
                             ]
+                        },
+                        markLine: {
+                            label:{
+                                position:"end",
+                                formatter: "标准线",
+                                color:"grey",
+                                fontSize:14
+                            },
+                            data: [{
+                                silent:true,
+                                symbol: 'none',
+                                lineStyle:{
+                                    type:"grid",
+                                    color:"grey"
+                                },
+                                yAxis: 700
+                            }]
                         }
                     },
                         {
@@ -278,7 +295,7 @@
             }
         },
         created() {
-            // let token = 'Bearer ' + this.$utils.getUrlKey("token")
+            // this.token = 'Bearer ' + this.$utils.getUrlKey("token")
             this.token = x_token
             this.getDevId(this.token)
             var nowHour = moment(new Date()).format('YYYY/MM/DD HH:00:00')
