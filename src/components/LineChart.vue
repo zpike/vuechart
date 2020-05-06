@@ -16,14 +16,14 @@
             </van-col>
         </van-row>
 
-        <Chart style="width: 400px"/>
+        <Chart/>
 
     </main>
 </template>
 
 <script>
     import axios from 'axios'
-    import {devURL, x_token} from '@/api'
+    import {devURL} from '@/api'
     import moment from 'moment'
     import Chart from "@/charts/Chart";
 
@@ -38,8 +38,8 @@
             }
         },
         created() {
-            // let token = 'Bearer ' + this.$utils.getUrlKey("token")
-            let token = x_token
+            let token = 'Bearer ' + this.$utils.getUrlKey("token")
+            // let token = x_token
             let vm = this;
             setInterval(function () {
                 vm.date = vm.getCurrentTime();

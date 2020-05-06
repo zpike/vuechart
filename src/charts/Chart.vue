@@ -52,7 +52,7 @@
 
 <script>
     import axios from 'axios'
-    import {dataURL, devURL, x_token} from '../api'
+    import {dataURL, devURL} from '../api'
     import mqtt from 'mqtt'
     import moment from 'moment'
     import {BASE_TOPIC, MQTT_PASSWORD, MQTT_SERVICE, MQTT_USERNAME} from '@/utils/mqttconst'
@@ -82,6 +82,7 @@
                 warningMin: 0, //内部控制线
                 standardValue: 0,  //标准值
                 overLists: {},
+                yMax: 0
             }
         },
         computed: {
@@ -120,12 +121,14 @@
                         .then(response => {
                             this.info = response.data.data
                             console.log(this.info)
-                            this.overLists = this.info.overValue
+                            if (this.info.overValue !== undefined) {
+                                this.overLists = this.info.overValue
+                            }
                             let linedata = []
                             linedata = this.info.line
                             if (this.info.bar !== undefined) {
                                 this.barEnd = this.info.bar.tip
-                                this.barStart = moment(this.info.bar.tip).subtract(30, 'second').format('YYYY/MM/DD HH:mm:ss')
+                                this.barStart = moment(this.info.bar.tip).subtract(40, 'second').format('YYYY/MM/DD HH:mm:ss')
                                 // this.barStart = moment(new Date()).subtract(30, 'second').format('YYYY/MM/DD HH:mm:ss')
                                 this.barValue = this.info.bar.value
                                 this.warningMax = this.info.warningLineMax
@@ -141,14 +144,17 @@
                                     case "NOX":
                                         this.color = '#5ECB4F'
                                         this.standardValue = 2000
+                                        this.yMax = 2500
                                         break;
                                     case 'SO2':
                                         this.color = '#FEB843'
                                         this.standardValue = 2000
+                                        this.yMax = 3500
                                         break;
                                     case 'DUST':
                                         this.color = '#5C89FF'
                                         this.standardValue = 1200
+                                        this.yMax = 1500
                                         break;
                                 }
                                 this.RedrawChart() // 获取历史数据之后绘制图表
@@ -185,8 +191,8 @@
                     var lineData = chartMSG.line
                     if (chartMSG.bar !== undefined) {
                         console.log('bardata====' + chartMSG.bar)
-                        this.barEnd = moment(new Date()).format('YYYY/MM/DD HH:mm:ss')
-                        this.barStart = moment(new Date()).subtract(60, 'second').format('YYYY/MM/DD HH:mm:ss')
+                        this.barEnd = chartMSG.bar.tip
+                        this.barStart = moment(chartMSG.bar.tip).subtract(40, 'second').format('YYYY/MM/DD HH:mm:ss')
                         this.barValue = chartMSG.bar.value
                         this.warningMin = chartMSG.warningLineMin.value
                         this.warningMax = chartMSG.warningLineMax.value
@@ -255,6 +261,7 @@
                     },
                     yAxis: {
                         type: 'value',
+                        max: this.yMax,
                         boundaryGap: [0, '100%'],
                         splitLine: {
                             show: false
@@ -371,8 +378,8 @@
                 }
             }
 
-            // this.token = 'Bearer ' + this.$utils.getUrlKey("token")
-            this.token = x_token
+            this.token = 'Bearer ' + this.$utils.getUrlKey("token")
+            // this.token = x_token
             this.getDevId(this.token)
             var nowHour = moment(new Date()).format('YYYY/MM/DD HH:00:00')
             var nextHour = moment(new Date()).add(1, 'hour').format('YYYY/MM/DD HH:00:00')
