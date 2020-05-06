@@ -16,7 +16,7 @@
             </van-col>
         </van-row>
 
-        <Chart/>
+        <Chart style="width: 400px"/>
 
     </main>
 </template>
@@ -61,7 +61,7 @@
                             console.log(error)
                         })
                 }, 1000)
-            }
+            },
         }
     }
 </script>

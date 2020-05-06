@@ -12,6 +12,7 @@
                     :loading="loading"
                     v-bind="options"
             />
+
         </van-tab>
 
         <van-tab title="SO2" name="SO2">
@@ -39,6 +40,13 @@
                     :loading="loading"
                     v-bind="options"/>
         </van-tab>
+
+        <h4 class="overproof">当日超点次数共计：{{ getOverTimes() }} 次
+            <span v-if="getOverTimes() > 0">; 分别发生于：
+                <small v-for="(overList ) in overLists" :key="overList.id" style="color: #FF0029">{{ overList }},
+                </small>
+            </span>
+        </h4>
     </van-tabs>
 </template>
 
@@ -47,47 +55,37 @@
     import {dataURL, devURL, x_token} from '../api'
     import mqtt from 'mqtt'
     import moment from 'moment'
-    import {MQTT_SERVICE, MQTT_USERNAME, MQTT_PASSWORD} from '@/utils/mqttconst'
-
-    var client
-    const options = {
-        connectTimeout: 20000,
-        clientId: 'ahb-charts',
-        username: MQTT_USERNAME,
-        password: MQTT_PASSWORD,
-        clean: true
-    }
-    client = mqtt.connect(MQTT_SERVICE, options)
-
-    const opt = {
-        onSuccess() {
-            console.log('退订成功')
-        },
-        onFailure(error) {
-            console.log('退订失败')
-            console.log(error)
-        }
-    }
+    import {BASE_TOPIC, MQTT_PASSWORD, MQTT_SERVICE, MQTT_USERNAME} from '@/utils/mqttconst'
 
     export default {
         data() {
             return {
+                mqttoptions: {},
+                client: null,
+                opt: {},
                 activeName: 'NOX',
                 deviceID: null,
                 customerId: null,
                 token: '',
-                MSG_TOPIC: 'overproof2/10000000/4',  //订阅主题
+                MSG_TOPIC: '',  //订阅主题
                 towerNo: 0,  //塔1-3
-                loading: false,
+                loading: true,
                 info: {},
                 chart: null,
                 chartData: [],  // 图表数据
                 anchor: [], // 时间锚
                 color: '',
-                barStart: '',
-                barEnd: '',
-                barValue: 0,
+                barStart: '', //当前平均值起始值
+                barEnd: '',  //当前平均值结束值
+                barValue: 0,  //当前平均值
+                warningMax: 0, //达标控制线
+                warningMin: 0, //内部控制线
+                standardValue: 0,  //标准值
+                overLists: {},
             }
+        },
+        computed: {
+
         },
         methods: {
             getDevId(token) {
@@ -97,7 +95,7 @@
                         if (response.data.data !== null) {
                             this.deviceID = response.data.data[this.towerNo].id
                             this.customerId = response.data.data[this.towerNo].customerId
-                            this.MSG_TOPIC = 'overproof/' + this.customerId + '/' + this.deviceID
+                            this.MSG_TOPIC = BASE_TOPIC + '/' + this.customerId + '/' + this.deviceID
                             console.log('mqtt-Topic: ' + this.MSG_TOPIC)
                         }
                         this.loadingData()  // 加载当前小时内的历史数据
@@ -120,11 +118,18 @@
                             }
                         })
                         .then(response => {
-                            this.info = response.data
+                            this.info = response.data.data
                             console.log(this.info)
+                            this.overLists = this.info.overValue
                             let linedata = []
-                            if (this.info.data !== null) {
-                                linedata = this.info.data.line
+                            linedata = this.info.line
+                            if (this.info.bar !== undefined) {
+                                this.barEnd = this.info.bar.tip
+                                this.barStart = moment(this.info.bar.tip).subtract(30, 'second').format('YYYY/MM/DD HH:mm:ss')
+                                // this.barStart = moment(new Date()).subtract(30, 'second').format('YYYY/MM/DD HH:mm:ss')
+                                this.barValue = this.info.bar.value
+                                this.warningMax = this.info.warningLineMax
+                                this.warningMin = this.info.warningLineMin
                             }
                             let charArray = []
                             if (linedata !== undefined) {
@@ -135,12 +140,15 @@
                                 switch (this.activeName) {
                                     case "NOX":
                                         this.color = '#5ECB4F'
+                                        this.standardValue = 2000
                                         break;
                                     case 'SO2':
                                         this.color = '#FEB843'
+                                        this.standardValue = 2000
                                         break;
                                     case 'DUST':
                                         this.color = '#5C89FF'
+                                        this.standardValue = 1200
                                         break;
                                 }
                                 this.RedrawChart() // 获取历史数据之后绘制图表
@@ -153,30 +161,35 @@
                 }, 1000)
             },
             mqttConnect() {
+                this.client = mqtt.connect(MQTT_SERVICE, this.mqttoptions)
+
                 // mqtt连接
-                client.on('connect', () => {
+                this.client.on('connect', () => {
                     console.log('连接成功:')
-                    client.subscribe(this.MSG_TOPIC, {qos: 0}, (error) => {
+                    this.client.subscribe(this.MSG_TOPIC, {qos: 0}, (error) => {
                         if (!error) {
                             console.log('订阅成功')
                         } else {
-                            client.pubish(this.MSG_TOPIC, '传输失败')
+                            this.client.pubish(this.MSG_TOPIC, '传输失败')
                             console.log('订阅失败')
                         }
                     })
                 })
 
                 // 接收消息处理
-                client.on('message', (topic, message) => {
+                this.client.on('message', (topic, message) => {
                     console.log('收到来自', topic, '的消息', message.toString())
                     this.msg = message.toString()
-                    var pointName = JSON.parse(this.msg).pointName
-                    var lineData = JSON.parse(this.msg).line
-                    var barData = JSON.parse(this.msg).bar
-                    if (barData !== undefined) {
-                        this.barStart = moment(barData.tip).subtract(30, 'second')
-                        this.barEnd = barData.tip
-                        this.barValue = barData.value
+                    var chartMSG = JSON.parse(this.msg)
+                    var pointName = chartMSG.pointName
+                    var lineData = chartMSG.line
+                    if (chartMSG.bar !== undefined) {
+                        console.log('bardata====' + chartMSG.bar)
+                        this.barEnd = moment(new Date()).format('YYYY/MM/DD HH:mm:ss')
+                        this.barStart = moment(new Date()).subtract(60, 'second').format('YYYY/MM/DD HH:mm:ss')
+                        this.barValue = chartMSG.bar.value
+                        this.warningMin = chartMSG.warningLineMin.value
+                        this.warningMax = chartMSG.warningLineMax.value
                     }
                     switch (this.activeName) {
                         case 'SO2':
@@ -203,16 +216,20 @@
                     this.RedrawChart()  // 获取mqtt数据之后再次绘制图表
                 })
                 // 断开发起重连
-                client.on('reconnect', (error) => {
+                this.client.on('reconnect', (error) => {
                     console.log('正在重连:', error)
                 })
                 // 链接异常处理
-                client.on('error', (error) => {
+                this.client.on('error', (error) => {
                     console.log('连接失败:', error)
                 })
             },
+            getOverTimes() {
+              return this.overLists.length
+            },
             mqttDisConnet() {
-                client.unsubscribe(this.MSG_TOPIC, opt)
+                this.client.unsubscribe(this.MSG_TOPIC, this.opt)
+                console.log('取消订阅')
             },
             RedrawChart() {
                 this.options = {
@@ -231,8 +248,9 @@
                         maxInterval: 300 * 1000, // 5分钟间隔显示x轴
                         axisLabel: {
                             formatter: function (value) {
-                                return moment(value).format('mm:ss');
-                            }
+                                return moment(value).format('mm');
+                            },
+                            rotate: 60,
                         }
                     },
                     yAxis: {
@@ -241,6 +259,11 @@
                         splitLine: {
                             show: false
                         },
+                        axisLabel: {
+                            formatter: function (value) {
+                                return (value/1000) + 'k'
+                            }
+                        }
                     },
                     dataZoom: [{
                         type: 'inside',
@@ -266,10 +289,11 @@
                         },
                         markLine: {
                             label:{
-                                position:"end",
+                                position:"",
                                 formatter: "标准线",
                                 color:"grey",
-                                fontSize:14
+                                fontSize:14,
+                                x: '90%'
                             },
                             data: [{
                                 silent:true,
@@ -278,8 +302,42 @@
                                     type:"grid",
                                     color:"grey"
                                 },
-                                yAxis: 700
-                            }]
+                                yAxis: this.standardValue
+                            },
+                                [{
+                                    symbol: 'none',
+                                    lineStyle: {
+                                        type: 'grid',
+                                        color: 'red'
+                                    },
+                                    x: '95%',
+                                    coord: [this.barEnd, this.warningMax]
+                                }, {
+                                    symbol: 'none',
+                                    label: {
+                                        position: '',
+                                        formatter: '达标线',
+                                        color: 'red'
+                                    },
+                                    coord: [this.barEnd, this.warningMax]
+                                }],
+                                [{
+                                    symbol: 'none',
+                                    lineStyle: {
+                                        type: 'grid',
+                                        color: 'orange'
+                                    },
+                                    x: '95%',
+                                    coord: [this.barEnd, this.warningMin]
+                                }, {
+                                    symbol: 'none',
+                                    label: {
+                                        position: '',
+                                        formatter: '内部线',
+                                        color: 'orange'
+                                    },
+                                    coord: [this.barEnd, this.warningMin]
+                                }]]
                         }
                     },
                         {
@@ -295,6 +353,24 @@
             }
         },
         created() {
+            this.mqttoptions = {
+                connectTimeout: 20000,
+                clientId: 'charts_' + Math.random().toString(16).substr(2, 8),
+                username: MQTT_USERNAME,
+                password: MQTT_PASSWORD,
+                clean: true
+            }
+
+            this.opt = {
+                onSuccess() {
+                    console.log('退订成功')
+                },
+                onFailure(error) {
+                    console.log('退订失败')
+                    console.log(error)
+                }
+            }
+
             // this.token = 'Bearer ' + this.$utils.getUrlKey("token")
             this.token = x_token
             this.getDevId(this.token)
@@ -312,8 +388,16 @@
             }
             this.options = {}
         },
+        mounted() {
+        },
         beforeDestroy() {
             this.mqttDisConnet()
         },
     }
 </script>
+
+<style lang="less">
+    .overproof {
+        margin-top: 40px;
+    }
+</style>
