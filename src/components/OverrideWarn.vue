@@ -28,7 +28,7 @@
     import Chart from "@/charts/Chart";
 
     export default {
-        name: "LineChart",
+        name: "OverridWarn",
         components: {Chart},
         data() {
             return {
