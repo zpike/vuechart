@@ -2,8 +2,6 @@ import Vue from 'vue'
 import Router from 'vue-router'
 const routerOptions = [
     { path: '/', component: 'LineChart' },
-    { path: '/line', component: 'LineChart' },
-    { path: '/guage', component: 'Guage' },
     { path: '*', component: 'NotFound' }
 ]
 const routes = routerOptions.map(route => {

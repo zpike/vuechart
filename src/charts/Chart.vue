@@ -28,7 +28,7 @@
                     v-bind="options"/>
         </van-tab>
 
-        <van-tab title="Dust" name="DUST">
+        <van-tab title="烟尘" name="DUST">
             <h4>
                 <van-icon name="bar-chart-o" color="#569cfc"/>
                 尘浓度曲线图
@@ -71,6 +71,7 @@
                 towerNo: 0,  //塔1-3
                 loading: true,
                 info: {},
+                bardata: {},
                 chart: null,
                 chartData: [],  // 图表数据
                 anchor: [], // 时间锚
@@ -157,7 +158,7 @@
                                         this.yMax = 1500
                                         break;
                                 }
-                                this.RedrawChart() // 获取历史数据之后绘制图表
+                                this.DrawChart() // 获取历史数据之后绘制图表
                             }
                         })
                         .catch(error => {
@@ -189,37 +190,60 @@
                     var chartMSG = JSON.parse(this.msg)
                     var pointName = chartMSG.pointName
                     var lineData = chartMSG.line
-                    if (chartMSG.bar !== undefined) {
-                        console.log('bardata====' + chartMSG.bar)
-                        this.barEnd = chartMSG.bar.tip
-                        this.barStart = moment(chartMSG.bar.tip).subtract(40, 'second').format('YYYY/MM/DD HH:mm:ss')
-                        this.barValue = chartMSG.bar.value
-                        this.warningMin = chartMSG.warningLineMin.value
-                        this.warningMax = chartMSG.warningLineMax.value
-                    }
                     switch (this.activeName) {
-                        case 'SO2':
-                            if (pointName === 'SO2') {
-                                this.chartData.push({name: lineData.tip, value: [lineData.tip, lineData.value]})
-                                this.color = '#FEB843'
-                            }
-                            break;
                         case 'NOX':
                             if (pointName === 'NOX') {
                                 this.chartData.push({name: lineData.tip, value: [lineData.tip, lineData.value]})
                                 this.color = '#5ECB4F'
+                                this.bardata = chartMSG.bar
+                                if (this.bardata !== undefined) {
+                                    this.barEnd = this.bardata.tip
+                                    this.barStart = moment(this.bardata.tip).subtract(40, 'second').format('YYYY/MM/DD HH:mm:ss')
+                                    this.barValue = this.bardata.value
+                                    console.log('NOX:bar-value====' + this.barValue)
+                                    console.log('NOX:bar-time====' + this.barEnd)
+                                    this.warningMin = chartMSG.warningLineMin.value
+                                    this.warningMax = chartMSG.warningLineMax.value
+                                }
+                                this.DrawChart()  // 获取mqtt数据之后再次绘制图表
+                            }
+                            break;
+                        case 'SO2':
+                            if (pointName === 'SO2') {
+                                this.chartData.push({name: lineData.tip, value: [lineData.tip, lineData.value]})
+                                this.color = '#FEB843'
+                                this.bardata = chartMSG.bar
+                                if (this.bardata !== undefined) {
+                                    this.barEnd = this.bardata.tip
+                                    this.barStart = moment(this.bardata.tip).subtract(40, 'second').format('YYYY/MM/DD HH:mm:ss')
+                                    this.barValue = this.bardata.value
+                                    console.log('SO2:bar-value====' + this.barValue)
+                                    console.log('SO2:bar-time====' + this.barEnd)
+                                    this.warningMin = chartMSG.warningLineMin.value
+                                    this.warningMax = chartMSG.warningLineMax.value
+                                }
+                                this.DrawChart()  // 获取mqtt数据之后再次绘制图表
                             }
                             break;
                         case 'DUST':
                             if (pointName === 'DUST') {
                                 this.chartData.push({name: lineData.tip, value: [lineData.tip, lineData.value]})
                                 this.color = '#5C89FF'
+                                this.bardata = chartMSG.bar
+                                if (this.bardata !== undefined) {
+                                    this.barEnd = this.bardata.tip
+                                    this.barStart = moment(this.bardata.tip).subtract(40, 'second').format('YYYY/MM/DD HH:mm:ss')
+                                    this.barValue = this.bardata.value
+                                    this.warningMin = chartMSG.warningLineMin.value
+                                    this.warningMax = chartMSG.warningLineMax.value
+                                }
+                                this.DrawChart()  // 获取mqtt数据之后再次绘制图表
                             }
                             break;
                         default:
                             break;
                     }
-                    this.RedrawChart()  // 获取mqtt数据之后再次绘制图表
+                    this.DrawChart()  // 获取mqtt数据之后再次绘制图表
                 })
                 // 断开发起重连
                 this.client.on('reconnect', (error) => {
@@ -237,7 +261,7 @@
                 this.client.unsubscribe(this.MSG_TOPIC, this.opt)
                 console.log('取消订阅')
             },
-            RedrawChart() {
+            DrawChart() {
                 this.options = {
                     tooltip: {
                         trigger: 'axis',
@@ -299,7 +323,7 @@
                                 position:"",
                                 formatter: "标准线",
                                 color:"grey",
-                                fontSize:14,
+                                fontSize:12,
                                 x: '90%'
                             },
                             data: [{
@@ -324,7 +348,8 @@
                                     label: {
                                         position: '',
                                         formatter: '达标线',
-                                        color: 'red'
+                                        color: 'red',
+                                        fontsize: 12
                                     },
                                     coord: [this.barEnd, this.warningMax]
                                 }],
@@ -341,7 +366,8 @@
                                     label: {
                                         position: '',
                                         formatter: '内部线',
-                                        color: 'orange'
+                                        color: 'orange',
+                                        fontsize: 12
                                     },
                                     coord: [this.barEnd, this.warningMin]
                                 }]]
@@ -378,9 +404,8 @@
                 }
             }
 
-            this.token = 'Bearer ' + this.$utils.getUrlKey("token")
-            // this.token = x_token
-            this.getDevId(this.token)
+            this.token = 'Bearer ' + this.$utils.getUrlKey("token")  //获取URL中的token
+            this.getDevId(this.token)  //获取设备ID 客户ID 加载历史数据 连接MQTT
             var nowHour = moment(new Date()).format('YYYY/MM/DD HH:00:00')
             var nextHour = moment(new Date()).add(1, 'hour').format('YYYY/MM/DD HH:00:00')
             this.anchor.push({name: nowHour, value: [nowHour, 0]})

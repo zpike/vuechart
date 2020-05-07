@@ -71,7 +71,6 @@
 
     .showDate {
         margin-bottom: 20px;
-        margin-top: -8px;
     }
 
     .van-radio-group {
@@ -83,6 +82,5 @@
     .echarts {
         width: 100%;
         height: 300px;
-        margin-top: 20px;
     }
 </style>
