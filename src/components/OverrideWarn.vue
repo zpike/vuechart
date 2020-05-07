@@ -39,7 +39,6 @@
         },
         created() {
             let token = 'Bearer ' + this.$utils.getUrlKey("token")
-            // let token = x_token
             let vm = this;
             setInterval(function () {
                 vm.date = vm.getCurrentTime();

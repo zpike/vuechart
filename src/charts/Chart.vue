@@ -8,7 +8,6 @@
             <ve-line-chart
                     :title="title"
                     :legend-visible="false"
-                    :settings="chartSettings"
                     :loading="loading"
                     v-bind="options"
             />
@@ -23,7 +22,6 @@
             <ve-line-chart
                     :title="title"
                     :legend-visible="false"
-                    :settings="chartSettings"
                     :loading="loading"
                     v-bind="options"/>
         </van-tab>
@@ -36,7 +34,6 @@
             <ve-line-chart
                     :title="title"
                     :legend-visible="false"
-                    :settings="chartSettings"
                     :loading="loading"
                     v-bind="options"/>
         </van-tab>
@@ -128,9 +125,11 @@
                             let linedata = []
                             linedata = this.info.line
                             if (this.info.bar !== undefined) {
+                                this.barEnd = ''
+                                this.barStart = ''
+                                this.barValue = 0
                                 this.barEnd = this.info.bar.tip
                                 this.barStart = moment(this.info.bar.tip).subtract(40, 'second').format('YYYY/MM/DD HH:mm:ss')
-                                // this.barStart = moment(new Date()).subtract(30, 'second').format('YYYY/MM/DD HH:mm:ss')
                                 this.barValue = this.info.bar.value
                                 this.warningMax = this.info.warningLineMax
                                 this.warningMin = this.info.warningLineMin
@@ -144,21 +143,21 @@
                                 switch (this.activeName) {
                                     case "NOX":
                                         this.color = '#5ECB4F'
-                                        this.standardValue = 2000
-                                        this.yMax = 2500
+                                        this.standardValue = 50
+                                        this.yMax = 60
                                         break;
                                     case 'SO2':
                                         this.color = '#FEB843'
-                                        this.standardValue = 2000
-                                        this.yMax = 3500
+                                        this.standardValue = 35
+                                        this.yMax = 40
                                         break;
                                     case 'DUST':
                                         this.color = '#5C89FF'
-                                        this.standardValue = 1200
-                                        this.yMax = 1500
+                                        this.standardValue = 5
+                                        this.yMax = 10
                                         break;
                                 }
-                                this.DrawChart() // 获取历史数据之后绘制图表
+                                this.initChart() // 获取历史数据之后绘制图表
                             }
                         })
                         .catch(error => {
@@ -200,12 +199,12 @@
                                     this.barEnd = this.bardata.tip
                                     this.barStart = moment(this.bardata.tip).subtract(40, 'second').format('YYYY/MM/DD HH:mm:ss')
                                     this.barValue = this.bardata.value
-                                    console.log('NOX:bar-value====' + this.barValue)
-                                    console.log('NOX:bar-time====' + this.barEnd)
                                     this.warningMin = chartMSG.warningLineMin.value
                                     this.warningMax = chartMSG.warningLineMax.value
+                                    console.log('NOX:bar-value====' + this.barValue)
+                                    console.log('NOX:bar-time====' + this.barEnd)
                                 }
-                                this.DrawChart()  // 获取mqtt数据之后再次绘制图表
+                                this.initChart()  // 获取mqtt数据之后再次绘制图表
                             }
                             break;
                         case 'SO2':
@@ -217,12 +216,12 @@
                                     this.barEnd = this.bardata.tip
                                     this.barStart = moment(this.bardata.tip).subtract(40, 'second').format('YYYY/MM/DD HH:mm:ss')
                                     this.barValue = this.bardata.value
-                                    console.log('SO2:bar-value====' + this.barValue)
-                                    console.log('SO2:bar-time====' + this.barEnd)
                                     this.warningMin = chartMSG.warningLineMin.value
                                     this.warningMax = chartMSG.warningLineMax.value
+                                    console.log('SO2:bar-value====' + this.barValue)
+                                    console.log('SO2:bar-time====' + this.barEnd)
                                 }
-                                this.DrawChart()  // 获取mqtt数据之后再次绘制图表
+                                this.initChart()  // 获取mqtt数据之后再次绘制图表
                             }
                             break;
                         case 'DUST':
@@ -236,14 +235,15 @@
                                     this.barValue = this.bardata.value
                                     this.warningMin = chartMSG.warningLineMin.value
                                     this.warningMax = chartMSG.warningLineMax.value
+                                    console.log('DUST:bar-value====' + this.barValue)
+                                    console.log('DUST:bar-time====' + this.barEnd)
                                 }
-                                this.DrawChart()  // 获取mqtt数据之后再次绘制图表
+                                this.initChart()  // 获取mqtt数据之后再次绘制图表
                             }
                             break;
                         default:
                             break;
                     }
-                    this.DrawChart()  // 获取mqtt数据之后再次绘制图表
                 })
                 // 断开发起重连
                 this.client.on('reconnect', (error) => {
@@ -261,13 +261,18 @@
                 this.client.unsubscribe(this.MSG_TOPIC, this.opt)
                 console.log('取消订阅')
             },
-            DrawChart() {
+            initChart() {
                 this.options = {
                     tooltip: {
                         trigger: 'axis',
                         axisPointer: {
                             type: 'cross'
-                        }
+                        },
+                        formatter: function (params) {
+                            params = params[0];
+                            var date = new Date(params.name);
+                            return '时间：' + date.getMinutes() + ':' + date.getSeconds() + '<br />' + '浓度：' + params.value[1];
+                        },
                     },
                     xAxis: {
                         name: '分钟',
@@ -289,11 +294,6 @@
                         boundaryGap: [0, '100%'],
                         splitLine: {
                             show: false
-                        },
-                        axisLabel: {
-                            formatter: function (value) {
-                                return (value/1000) + 'k'
-                            }
                         }
                     },
                     dataZoom: [{
@@ -347,7 +347,7 @@
                                     symbol: 'none',
                                     label: {
                                         position: '',
-                                        formatter: '达标线',
+                                        formatter: '',
                                         color: 'red',
                                         fontsize: 12
                                     },
@@ -414,13 +414,7 @@
             this.title = {
                 text: 'mg/Nm³'
             }
-            this.chartSettings = {
-                smooth: true,
-                showSymbol: false
-            }
             this.options = {}
-        },
-        mounted() {
         },
         beforeDestroy() {
             this.mqttDisConnet()

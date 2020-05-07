@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 const routerOptions = [
-    { path: '/', component: 'LineChart' },
+    { path: '/', component: 'OverrideWarn' },
     { path: '*', component: 'NotFound' }
 ]
 const routes = routerOptions.map(route => {
