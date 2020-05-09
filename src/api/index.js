@@ -1,5 +1,5 @@
-// const baseURL = 'http://10.100.10.57:8000'
-const baseURL = 'http://10.100.40.89:30001'
+const baseURL = 'https://api.kunyue2019.com'   // 正式
+// const baseURL = 'http://10.100.40.89:30001'  // 测试api
 const dataURL = baseURL + '/equipment/overControl/getListByDevIdPointName'
 const devURL = baseURL + '/equipment/equipment/getEquipmentByCustomerId'
 

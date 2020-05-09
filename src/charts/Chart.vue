@@ -217,6 +217,9 @@
                         default:
                             break;
                     }
+                    if (moment(lineData.tip).format('mm:ss') === '00:00') {
+                        this.loadingData()
+                    }
                     this.initChart()  // 获取mqtt数据之后再次绘制图表
                 })
                 // 断开发起重连
