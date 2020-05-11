@@ -78,7 +78,7 @@
                 warningMax: 0, //达标控制线
                 warningMin: 0, //内部控制线
                 standardValue: 0,  //标准值
-                overLists: {},
+                overLists: [],
                 yMax: 0
             }
         },
@@ -119,6 +119,8 @@
                             console.log(this.info)
                             if (this.info.overValue !== undefined) {
                                 this.overLists = this.info.overValue
+                            } else {
+                                this.overLists = []
                             }
                             let linedata = []
                             linedata = this.info.line
@@ -324,7 +326,7 @@
                                     symbol: 'none',
                                     label: {
                                         position: '',
-                                        formatter: '',
+                                        formatter: '达标线',
                                         color: 'red',
                                         fontsize: 12
                                     },

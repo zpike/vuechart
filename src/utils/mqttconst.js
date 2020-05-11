@@ -1,5 +1,5 @@
 // 正式
-export const MQTT_SERVICE = 'ws://121.36.204.104:8083/mqtt'
+export const MQTT_SERVICE = 'ws://emq.kunyue2019.com:8083/mqtt'
 export const MQTT_USERNAME = 'ahb'
 export const MQTT_PASSWORD = 'Kunyue@123'
 // 测试
