@@ -79,7 +79,6 @@
                 warningMin: 0, //内部控制线
                 standardValue: 0,  //标准值
                 overLists: [],
-                yMax: 0
             }
         },
         computed: {
@@ -141,15 +140,12 @@
                                 switch (this.activeName) {
                                     case "NOX":
                                         this.color = '#5ECB4F'
-                                        this.yMax = 60
                                         break;
                                     case 'SO2':
                                         this.color = '#FEB843'
-                                        this.yMax = 40
                                         break;
                                     case 'DUST':
                                         this.color = '#5C89FF'
-                                        this.yMax = 10
                                         break;
                                 }
                                 this.initChart() // 获取历史数据之后绘制图表
@@ -164,6 +160,14 @@
             loadingData() {
                 this.loading = true
                 this.getHistoryData()
+            },
+            reloadPage(time) {
+                var startTime = moment(this.chartData[0].name, 'YYYY/MM/DD HH:mm:ss')
+                var endTime = moment(time, 'YYYY/MM/DD HH:mm:ss')
+                if (endTime.diff(startTime, 'seconds') >= 3600) {
+                    location.reload()
+                    console.log('reload page')
+                }
             },
             mqttConnect() {
                 this.client = mqtt.connect(MQTT_SERVICE, this.mqttoptions)
@@ -196,6 +200,7 @@
                                 if (chartArray.bar !== undefined) {
                                     this.getHistoryData()
                                 }
+                                this.reloadPage(lineData.tip)
                             }
                             break;
                         case 'SO2':
@@ -205,6 +210,7 @@
                                 if (chartArray.bar !== undefined) {
                                     this.getHistoryData()
                                 }
+                                this.reloadPage(lineData.tip)
                             }
                             break;
                         case 'DUST':
@@ -214,6 +220,7 @@
                                 if (chartArray.bar !== undefined) {
                                     this.getHistoryData()
                                 }
+                                this.reloadPage(lineData.tip)
                             }
                             break;
                         default:
@@ -269,7 +276,6 @@
                     },
                     yAxis: {
                         type: 'value',
-                        max: this.yMax,
                         boundaryGap: [0, '100%'],
                         splitLine: {
                             show: false
@@ -320,12 +326,12 @@
                                         type: 'grid',
                                         color: 'red'
                                     },
-                                    x: '95%',
+                                    x: '85%',
                                     coord: [this.barEnd, this.warningMax]
                                 }, {
                                     symbol: 'none',
                                     label: {
-                                        position: '',
+                                        position: 'start',
                                         formatter: '达标线',
                                         color: 'red',
                                         fontsize: 12
@@ -338,12 +344,12 @@
                                         type: 'grid',
                                         color: 'orange'
                                     },
-                                    x: '95%',
+                                    x: '85%',
                                     coord: [this.barEnd, this.warningMin]
                                 }, {
                                     symbol: 'none',
                                     label: {
-                                        position: '',
+                                        position: 'start',
                                         formatter: '内部线',
                                         color: 'orange',
                                         fontsize: 12
