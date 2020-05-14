@@ -373,7 +373,7 @@
         created() {
             this.mqttoptions = {
                 connectTimeout: 20000,
-                clientId: 'charts_' + Math.random().toString(16).substr(2, 8),
+                clientId: 'mobile_' + Math.random().toString(16).substr(2, 8),
                 username: MQTT_USERNAME,
                 password: MQTT_PASSWORD,
                 clean: true
